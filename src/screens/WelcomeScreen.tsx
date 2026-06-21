@@ -26,12 +26,7 @@ export default function WelcomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.actions}>
-        <Button label="Get Started" onPress={() => navigation.navigate('Home')} />
-        <Button
-          label="I already have an account"
-          variant="ghost"
-          onPress={() => navigation.navigate('Home')}
-        />
+        <Button label="Get Started" onPress={() => navigation.navigate('Auth')} />
       </View>
     </SafeAreaView>
   );
