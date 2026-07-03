@@ -1,5 +1,6 @@
 export type RootStackParamList = {
   Welcome: undefined;
-  Home: undefined;
   Auth: undefined;
+  Home: undefined;
+  PlaygroundDetail: { id: string };
 };

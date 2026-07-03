@@ -1,5 +1,3 @@
-// Central design tokens — like CSS variables in a web project.
-
 export const colors = {
   primary: "#0EA371",
   primaryDark: "#0B8A60",

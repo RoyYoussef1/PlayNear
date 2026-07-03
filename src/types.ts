@@ -1,14 +1,8 @@
 export type PlaygroundType = 'outdoor' | 'indoor';
 
 export type AmenityKey =
-  | 'cafe'
-  | 'restaurant'
-  | 'parking'
-  | 'restroom'
-  | 'wifi'
-  | 'pets'
-  | 'shade'
-  | 'water';
+  | 'cafe' | 'restaurant' | 'parking' | 'restroom'
+  | 'wifi' | 'pets' | 'shade' | 'water';
 
 export interface Playground {
   id: string;
@@ -17,9 +11,13 @@ export interface Playground {
   area: string;
   rating: number;
   reviewCount: number;
-  distanceKm: number; 
+  distanceKm: number;
   price: 'Free' | string;
   image: string;
   amenities: AmenityKey[];
   featured?: boolean;
+  description: string;
+  coords: { latitude: number; longitude: number };
+  ageRange: string;
+  openHours: string;
 }

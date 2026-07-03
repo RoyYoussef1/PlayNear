@@ -1,14 +1,15 @@
 import React from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './src/navigation/types';
-import WelcomeScreen from './src/screens/WelcomeScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import WelcomeScreen from './src/screens/WelcomeScreen';
 import AuthScreen from './src/screens/AuthScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import PlaygroundDetailScreen from './src/screens/PlaygroundDetailScreen';
+import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,7 +27,10 @@ function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="PlaygroundDetail" component={PlaygroundDetailScreen} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -50,8 +54,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  splash: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: colors.bg,
-  },
+  splash: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
 });

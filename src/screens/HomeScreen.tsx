@@ -1,71 +1,59 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
-import { colors, font, spacing, radius } from "../theme";
-import { useAuth } from "../context/AuthContext";
-import { PLAYGROUNDS } from "../data/playgrounds";
-import SearchBar from "../components/SearchBar";
-import CategoryChip from "../components/CategoryChip";
-import {
-  FeaturedCard,
-  PlaygroundRow,
-  FEATURED_W,
-} from "../components/PlaygroundCard";
+  StyleSheet, Text, View, ScrollView, TouchableOpacity,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, font, spacing, radius } from '../theme';
+import { useAuth } from '../context/AuthContext';
+import { PLAYGROUNDS } from '../data/playgrounds';
+import SearchBar from '../components/SearchBar';
+import CategoryChip from '../components/CategoryChip';
+import { FeaturedCard, PlaygroundRow, FEATURED_W } from '../components/PlaygroundCard';
 
-type Filter = "all" | "outdoor" | "indoor" | "top" | "free";
+type Filter = 'all' | 'outdoor' | 'indoor' | 'top' | 'free';
 
-const FILTERS: {
-  key: Filter;
-  label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
-}[] = [
-  { key: "all", label: "All" },
-  { key: "outdoor", label: "Outdoor", icon: "leaf-outline" },
-  { key: "indoor", label: "Indoor", icon: "home-outline" },
-  { key: "top", label: "Top rated", icon: "star-outline" },
-  { key: "free", label: "Free", icon: "pricetag-outline" },
+const FILTERS: { key: Filter; label: string; icon?: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'outdoor', label: 'Outdoor', icon: 'leaf-outline' },
+  { key: 'indoor', label: 'Indoor', icon: 'home-outline' },
+  { key: 'top', label: 'Top rated', icon: 'star-outline' },
+  { key: 'free', label: 'Free', icon: 'pricetag-outline' },
 ];
 
-export default function HomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
   const insets = useSafeAreaInsets();
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
 
-  const firstName = (user?.displayName || "there").split(" ")[0];
+  const firstName = (user?.displayName || 'there').split(' ')[0];
   const initial = firstName.charAt(0).toUpperCase();
   const featured = useMemo(() => PLAYGROUNDS.filter((p) => p.featured), []);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return PLAYGROUNDS.filter((p) => {
-      const matchesQuery =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.area.toLowerCase().includes(q);
-      const matchesFilter =
-        filter === "all"
-          ? true
-          : filter === "outdoor"
-            ? p.type === "outdoor"
-            : filter === "indoor"
-              ? p.type === "indoor"
-              : filter === "top"
-                ? p.rating >= 4.5
-                : p.price === "Free";
-      return matchesQuery && matchesFilter;
-    }).sort((a, b) => a.distanceKm - b.distanceKm);
+    return PLAYGROUNDS
+      .filter((p) => {
+        const matchesQuery =
+          !q || p.name.toLowerCase().includes(q) || p.area.toLowerCase().includes(q);
+        const matchesFilter =
+          filter === 'all' ? true :
+          filter === 'outdoor' ? p.type === 'outdoor' :
+          filter === 'indoor' ? p.type === 'indoor' :
+          filter === 'top' ? p.rating >= 4.5 :
+          p.price === 'Free';
+        return matchesQuery && matchesFilter;
+      })
+      .sort((a, b) => a.distanceKm - b.distanceKm);
   }, [query, filter]);
 
-  const searching = query.trim().length > 0 || filter !== "all";
+  const searching = query.trim().length > 0 || filter !== 'all';
 
   return (
     <View style={styles.root}>
@@ -82,16 +70,10 @@ export default function HomeScreen() {
                 <Ionicons name="location" size={13} color="#7BE0B8" />
                 <Text style={styles.location}>Baabda, Mount Lebanon</Text>
               </View>
-              <Text style={styles.hello}>
-                Hi {firstName}, where{"\n"}shall we play today?
-              </Text>
+              <Text style={styles.hello}>Hi {firstName}, where{'\n'}shall we play today?</Text>
             </View>
 
-            <TouchableOpacity
-              style={styles.avatar}
-              onPress={signOut}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={styles.avatar} onPress={signOut} activeOpacity={0.8}>
               <Text style={styles.avatarText}>{initial}</Text>
             </TouchableOpacity>
           </View>
@@ -109,7 +91,11 @@ export default function HomeScreen() {
           style={styles.carouselWrap}
         >
           {featured.map((item) => (
-            <FeaturedCard key={item.id} item={item} />
+            <FeaturedCard
+              key={item.id}
+              item={item}
+              onPress={() => navigation.navigate('PlaygroundDetail', { id: item.id })}
+            />
           ))}
         </ScrollView>
 
@@ -131,7 +117,7 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            {searching ? "Results" : "Nearby playgrounds"}
+            {searching ? 'Results' : 'Nearby playgrounds'}
           </Text>
           <View style={styles.countPill}>
             <Text style={styles.countText}>{results.length}</Text>
@@ -150,17 +136,20 @@ export default function HomeScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.emptyBtn}
-                onPress={() => {
-                  setQuery("");
-                  setFilter("all");
-                }}
+                onPress={() => { setQuery(''); setFilter('all'); }}
                 activeOpacity={0.85}
               >
                 <Text style={styles.emptyBtnText}>Clear search</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            results.map((item) => <PlaygroundRow key={item.id} item={item} />)
+            results.map((item) => (
+              <PlaygroundRow
+                key={item.id}
+                item={item}
+                onPress={() => navigation.navigate('PlaygroundDetail', { id: item.id })}
+              />
+            ))
           )}
         </View>
       </ScrollView>
@@ -181,94 +170,52 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: radius.xl,
   },
   headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: spacing.lg,
   },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 6,
-  },
-  location: { color: "#A9D9C3", fontSize: font.xs, fontWeight: "600" },
-  hello: {
-    color: colors.white,
-    fontSize: font.xl,
-    fontWeight: "800",
-    lineHeight: 29,
-  },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
+  location: { color: '#A9D9C3', fontSize: font.xs, fontWeight: '600' },
+  hello: { color: colors.white, fontSize: font.xl, fontWeight: '800', lineHeight: 29 },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 44, height: 44, borderRadius: 14,
     backgroundColor: colors.canopyLight,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
   },
-  avatarText: { color: colors.white, fontSize: font.md, fontWeight: "800" },
+  avatarText: { color: colors.white, fontSize: font.md, fontWeight: '800' },
 
   carouselWrap: { marginTop: -CANOPY_OVERLAP },
-  carousel: {
-    paddingHorizontal: spacing.xl,
-    gap: spacing.md,
-    paddingBottom: 4,
-  },
+  carousel: { paddingHorizontal: spacing.xl, gap: spacing.md, paddingBottom: 4 },
 
   filters: {
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-    marginTop: spacing.xl,
+    paddingHorizontal: spacing.xl, gap: spacing.sm, marginTop: spacing.xl,
   },
 
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.xl,
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.md,
   },
-  sectionTitle: { fontSize: font.lg, fontWeight: "800", color: colors.ink },
+  sectionTitle: { fontSize: font.lg, fontWeight: '800', color: colors.ink },
   countPill: {
-    minWidth: 24,
-    height: 22,
-    paddingHorizontal: 7,
-    borderRadius: 11,
-    backgroundColor: colors.mint,
-    alignItems: "center",
-    justifyContent: "center",
+    minWidth: 24, height: 22, paddingHorizontal: 7, borderRadius: 11,
+    backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center',
   },
-  countText: {
-    fontSize: font.xs,
-    fontWeight: "800",
-    color: colors.primaryDark,
-  },
+  countText: { fontSize: font.xs, fontWeight: '800', color: colors.primaryDark },
 
   list: { paddingHorizontal: spacing.xl, gap: spacing.md },
 
-  empty: { alignItems: "center", paddingVertical: spacing.xxl, gap: 6 },
+  empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: 6 },
   emptyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: colors.mint,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.sm,
+    width: 56, height: 56, borderRadius: 18, backgroundColor: colors.mint,
+    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
   },
-  emptyTitle: { fontSize: font.md, fontWeight: "700", color: colors.ink },
-  emptyText: { fontSize: font.sm, color: colors.body, textAlign: "center" },
+  emptyTitle: { fontSize: font.md, fontWeight: '700', color: colors.ink },
+  emptyText: { fontSize: font.sm, color: colors.body, textAlign: 'center' },
   emptyBtn: {
-    marginTop: spacing.md,
-    paddingHorizontal: spacing.xl,
-    height: 42,
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    marginTop: spacing.md, paddingHorizontal: spacing.xl, height: 42,
+    backgroundColor: colors.primary, borderRadius: radius.md,
+    alignItems: 'center', justifyContent: 'center',
   },
-  emptyBtnText: { color: colors.white, fontWeight: "700", fontSize: font.sm },
+  emptyBtnText: { color: colors.white, fontWeight: '700', fontSize: font.sm },
 });
