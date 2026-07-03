@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, font } from "../theme";
+import { colors, radius, spacing, font, shadow } from "../theme";
 
 interface Props {
   value: string;
@@ -17,7 +17,7 @@ export default function SearchBar({ value, onChangeText, placeholder }: Props) {
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder ?? "Search playgrounds"}
+        placeholder={placeholder ?? "Search playgrounds or areas"}
         placeholderTextColor={colors.body}
         autoCapitalize="none"
         autoCorrect={false}
@@ -36,13 +36,12 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
     paddingHorizontal: spacing.lg,
-    height: 50,
+    height: 52,
     gap: spacing.md,
+    ...shadow,
   },
   input: { flex: 1, fontSize: font.md, color: colors.ink },
 });

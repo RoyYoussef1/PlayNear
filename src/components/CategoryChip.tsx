@@ -20,8 +20,8 @@ export default function CategoryChip({ label, icon, active, onPress }: Props) {
       {icon && (
         <Ionicons
           name={icon}
-          size={16}
-          color={active ? colors.white : colors.body}
+          size={15}
+          color={active ? colors.white : colors.primaryDark}
         />
       )}
       <Text
@@ -40,18 +40,11 @@ const styles = StyleSheet.create({
     gap: 6,
     height: 38,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    borderRadius: 19,
   },
-  chipIdle: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
-  },
-  chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
+  chipIdle: { backgroundColor: colors.mint },
+  chipActive: { backgroundColor: colors.primary },
   label: { fontSize: font.sm, fontWeight: "600" },
-  labelIdle: { color: colors.body },
+  labelIdle: { color: colors.primaryDark },
   labelActive: { color: colors.white },
 });

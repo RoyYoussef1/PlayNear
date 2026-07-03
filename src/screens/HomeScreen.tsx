@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, font, spacing, radius } from "../theme";
@@ -14,14 +14,18 @@ import { useAuth } from "../context/AuthContext";
 import { PLAYGROUNDS } from "../data/playgrounds";
 import SearchBar from "../components/SearchBar";
 import CategoryChip from "../components/CategoryChip";
-import { FeaturedCard, PlaygroundRow } from "../components/PlaygroundCard";
+import {
+  FeaturedCard,
+  PlaygroundRow,
+  FEATURED_W,
+} from "../components/PlaygroundCard";
 
 type Filter = "all" | "outdoor" | "indoor" | "top" | "free";
 
 const FILTERS: {
   key: Filter;
   label: string;
-  icon?: keyof typeof import("@expo/vector-icons").Ionicons.glyphMap;
+  icon?: keyof typeof Ionicons.glyphMap;
 }[] = [
   { key: "all", label: "All" },
   { key: "outdoor", label: "Outdoor", icon: "leaf-outline" },
@@ -32,10 +36,12 @@ const FILTERS: {
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
   const firstName = (user?.displayName || "there").split(" ")[0];
+  const initial = firstName.charAt(0).toUpperCase();
   const featured = useMemo(() => PLAYGROUNDS.filter((p) => p.featured), []);
 
   const results = useMemo(() => {
@@ -54,53 +60,53 @@ export default function HomeScreen() {
               ? p.type === "indoor"
               : filter === "top"
                 ? p.rating >= 4.5
-                : filter === "free"
-                  ? p.price === "Free"
-                  : true;
+                : p.price === "Free";
       return matchesQuery && matchesFilter;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [query, filter]);
 
+  const searching = query.trim().length > 0 || filter !== "all";
+
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <StatusBar style="dark" />
+    <View style={styles.root}>
+      <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: spacing.xxl }}
+        contentContainerStyle={{ paddingBottom: spacing.xxl + insets.bottom }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.hello}>Hi {firstName} 👋</Text>
-            <View style={styles.locationRow}>
-              <Ionicons name="location" size={14} color={colors.primary} />
-              <Text style={styles.location}>Baabda, Mount Lebanon</Text>
+        <View style={[styles.canopy, { paddingTop: insets.top + spacing.md }]}>
+          <View style={styles.headerRow}>
+            <View style={{ flex: 1 }}>
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={13} color="#7BE0B8" />
+                <Text style={styles.location}>Baabda, Mount Lebanon</Text>
+              </View>
+              <Text style={styles.hello}>
+                Hi {firstName}, where{"\n"}shall we play today?
+              </Text>
             </View>
-          </View>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={signOut}
-            hitSlop={8}
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
 
-        <View style={styles.block}>
+            <TouchableOpacity
+              style={styles.avatar}
+              onPress={signOut}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.avatarText}>{initial}</Text>
+            </TouchableOpacity>
+          </View>
+
           <SearchBar value={query} onChangeText={setQuery} />
         </View>
 
-        {/* Featured carousel */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See all</Text>
-          </TouchableOpacity>
-        </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carousel}
+          snapToInterval={FEATURED_W + spacing.md}
+          decelerationRate="fast"
+          snapToAlignment="start"
+          style={styles.carouselWrap}
         >
           {featured.map((item) => (
             <FeaturedCard key={item.id} item={item} />
@@ -125,15 +131,19 @@ export default function HomeScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            {query || filter !== "all" ? "Results" : "Nearby playgrounds"}
+            {searching ? "Results" : "Nearby playgrounds"}
           </Text>
-          <Text style={styles.count}>{results.length}</Text>
+          <View style={styles.countPill}>
+            <Text style={styles.countText}>{results.length}</Text>
+          </View>
         </View>
 
         <View style={styles.list}>
           {results.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="search" size={32} color={colors.line} />
+              <View style={styles.emptyIcon}>
+                <Ionicons name="search" size={26} color={colors.primary} />
+              </View>
               <Text style={styles.emptyTitle}>No playgrounds found</Text>
               <Text style={styles.emptyText}>
                 Try a different search or clear the filters.
@@ -144,8 +154,9 @@ export default function HomeScreen() {
                   setQuery("");
                   setFilter("all");
                 }}
+                activeOpacity={0.85}
               >
-                <Text style={styles.emptyBtnText}>Reset</Text>
+                <Text style={styles.emptyBtnText}>Clear search</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -153,81 +164,111 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+const CANOPY_OVERLAP = 64;
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg },
+
+  canopy: {
+    backgroundColor: colors.canopy,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+    paddingBottom: CANOPY_OVERLAP + spacing.md,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
   },
-  hello: { fontSize: font.xl, fontWeight: "800", color: colors.ink },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: spacing.lg,
+  },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
-    marginTop: 2,
+    gap: 4,
+    marginBottom: 6,
   },
-  location: { fontSize: font.sm, color: colors.body },
-  iconBtn: {
+  location: { color: "#A9D9C3", fontSize: font.xs, fontWeight: "600" },
+  hello: {
+    color: colors.white,
+    fontSize: font.xl,
+    fontWeight: "800",
+    lineHeight: 29,
+  },
+  avatar: {
     width: 44,
     height: 44,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
+    borderRadius: 14,
+    backgroundColor: colors.canopyLight,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  avatarText: { color: colors.white, fontSize: font.md, fontWeight: "800" },
+
+  carouselWrap: { marginTop: -CANOPY_OVERLAP },
+  carousel: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.md,
+    paddingBottom: 4,
   },
 
-  block: { paddingHorizontal: spacing.xl },
+  filters: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+  },
 
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: spacing.sm,
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
   },
   sectionTitle: { fontSize: font.lg, fontWeight: "800", color: colors.ink },
-  seeAll: { fontSize: font.sm, color: colors.primary, fontWeight: "700" },
-  count: { fontSize: font.sm, color: colors.body, fontWeight: "600" },
-
-  carousel: { paddingHorizontal: spacing.xl, gap: spacing.md },
-  filters: {
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-    marginTop: spacing.lg,
+  countPill: {
+    minWidth: 24,
+    height: 22,
+    paddingHorizontal: 7,
+    borderRadius: 11,
+    backgroundColor: colors.mint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countText: {
+    fontSize: font.xs,
+    fontWeight: "800",
+    color: colors.primaryDark,
   },
 
   list: { paddingHorizontal: spacing.xl, gap: spacing.md },
 
-  empty: {
+  empty: { alignItems: "center", paddingVertical: spacing.xxl, gap: 6 },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: colors.mint,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing.xxl,
-    gap: 6,
+    marginBottom: spacing.sm,
   },
-  emptyTitle: {
-    fontSize: font.md,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: spacing.sm,
-  },
+  emptyTitle: { fontSize: font.md, fontWeight: "700", color: colors.ink },
   emptyText: { fontSize: font.sm, color: colors.body, textAlign: "center" },
   emptyBtn: {
     marginTop: spacing.md,
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    height: 42,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  emptyBtnText: { color: colors.ink, fontWeight: "700", fontSize: font.sm },
+  emptyBtnText: { color: colors.white, fontWeight: "700", fontSize: font.sm },
 });
